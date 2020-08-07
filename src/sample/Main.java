@@ -24,11 +24,13 @@ import java.util.Scanner;
 
 public class Main extends Application {
 
+    File current;
+
     @Override
     public void start(Stage primaryStage) throws Exception{
         Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
         GridPane grid = new GridPane();
-        grid.setMinSize(500, 500);
+        //grid.setMinSize(500, 500);
         grid.setPadding(new Insets(10, 10, 10, 10));
         grid.setHgap(5);
         grid.setVgap(5);
@@ -42,8 +44,8 @@ public class Main extends Application {
         TextField length = new TextField();
         TextField width = new TextField();
 
-        TextField lengthscale = new TextField();
-        TextField widthscale = new TextField();
+        Text lengthtext = new Text("Image Length");
+        Text widthtext = new Text("Image Width");
 
         CheckBox aspectratio = new CheckBox("Maintain Aspect Ratio");
 
@@ -60,8 +62,24 @@ public class Main extends Application {
         Button loadpresetbutton = new Button("Load Preset");
         Button savepresetbutton = new Button("Save Preset");
 
+        grid.add(maintext, 0, 0, 3, 1);
+        grid.add(filepath, 1, 1);
+        grid.add(openfile, 0, 1);
+        grid.add(lengthtext, 0, 2);
+        grid.add(widthtext, 0, 3);
+        grid.add(length, 1, 2);
+        grid.add(width, 1, 3);
+        grid.add(aspectratio, 1, 4);
+        grid.add(bicubic, 2, 1);
+        grid.add(bilinear, 2, 2);
+        grid.add(nearest, 2, 3);
+        grid.add(generatebutton, 0, 5);
+        grid.add(savepresetbutton, 1, 5);
+        grid.add(loadpresetbutton, 2, 5);
+
+
         EventHandler<ActionEvent> selectfile = actionEvent -> {
-            File selected = filechooser.showOpenDialog(primaryStage);
+            current = filechooser.showOpenDialog(primaryStage);
         };
 
         EventHandler<ActionEvent> loadpreset = actionEvent -> {
@@ -116,7 +134,8 @@ public class Main extends Application {
         };
 
         primaryStage.setTitle("UpScalr");
-        primaryStage.setScene(grid.getScene());
+        Scene scene = new Scene(grid);
+        primaryStage.setScene(scene);
         primaryStage.show();
     }
 
