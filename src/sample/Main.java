@@ -20,6 +20,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.util.Scanner;
 
 public class Main extends Application {
@@ -40,12 +41,25 @@ public class Main extends Application {
         Text maintext = new Text("Insert instructions here");
 
         TextField filepath = new TextField();
+        filepath.setEditable(false);
 
         TextField length = new TextField();
         TextField width = new TextField();
 
-        Text lengthtext = new Text("Image Length");
-        Text widthtext = new Text("Image Width");
+        length.setPrefWidth(75);
+        width.setPrefWidth(75);
+
+        Text lengthtext = new Text("Image Length (px)");
+        Text widthtext = new Text("Image Width (px)");
+
+        Text lscaletext = new Text("Length Scale");
+        Text wscaletext = new Text("Width Scale");
+
+        TextField lscale = new TextField();
+        TextField wscale = new TextField();
+
+        lscale.setPrefWidth(75);
+        wscale.setPrefWidth(75);
 
         CheckBox aspectratio = new CheckBox("Maintain Aspect Ratio");
 
@@ -63,19 +77,23 @@ public class Main extends Application {
         Button savepresetbutton = new Button("Save Preset");
 
         grid.add(maintext, 0, 0, 3, 1);
-        grid.add(filepath, 1, 1);
+        grid.add(filepath, 1, 1, 3, 1);
         grid.add(openfile, 0, 1);
         grid.add(lengthtext, 0, 2);
         grid.add(widthtext, 0, 3);
         grid.add(length, 1, 2);
         grid.add(width, 1, 3);
-        grid.add(aspectratio, 1, 4);
-        grid.add(bicubic, 2, 1);
-        grid.add(bilinear, 2, 2);
-        grid.add(nearest, 2, 3);
+        grid.add(aspectratio, 4, 4, 2, 1);
+        grid.add(lscaletext, 2, 2);
+        grid.add(wscaletext, 2, 3);
+        grid.add(lscale, 3, 2);
+        grid.add(wscale, 3, 3);
+        grid.add(bicubic, 4, 1, 2, 1);
+        grid.add(bilinear, 4, 2, 2, 1);
+        grid.add(nearest, 4, 3, 2, 1);
         grid.add(generatebutton, 0, 5);
-        grid.add(savepresetbutton, 1, 5);
-        grid.add(loadpresetbutton, 2, 5);
+        grid.add(savepresetbutton, 4, 5);
+        grid.add(loadpresetbutton, 5, 5);
 
 
         EventHandler<ActionEvent> selectfile = actionEvent -> {
@@ -84,6 +102,15 @@ public class Main extends Application {
 
         EventHandler<ActionEvent> loadpreset = actionEvent -> {
             File selected = filechooser.showOpenDialog(primaryStage);
+            try {
+                Image selectedimage = ImageIO.read(selected);
+                length.setText(Integer.toString(selectedimage.getHeight(null)));
+                width.setText(Integer.toString(selectedimage.getWidth(null)));
+                lscale.setText("1.0");
+                wscale.setText("1.0");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         };
 
         EventHandler<ActionEvent> savepreset = actionEvent -> {
@@ -91,46 +118,25 @@ public class Main extends Application {
         };
 
         EventHandler<ActionEvent> resize = actionEvent -> {
-            /*File selected = new File(file);
             try {
-                Image selectedimage = ImageIO.read(selected);
-                Scanner scan = new Scanner(System.in);
-                System.out.println("Width scaling:");
-                double widthscale = scan.nextDouble();
-                System.out.println("Height scaling:");
-                double heightscale = scan.nextDouble();
-                int originalheight = selectedimage.getHeight(null);
-                int originalwidth = selectedimage.getWidth(null);
-                int newheight = (int)(originalheight * heightscale);
-                int newwidth = (int)(originalwidth * widthscale);
-                Image resized = selectedimage.getScaledInstance(newwidth, newheight, Image.SCALE_FAST);
-                BufferedImage buff = new BufferedImage(newwidth, newheight, BufferedImage.TYPE_3BYTE_BGR);
+                Image selectedimage = ImageIO.read(current);
+                Image resized = selectedimage.getScaledInstance(Integer.parseInt(width.getText()), Integer.parseInt(length.getText()), Image.SCALE_FAST);
+                BufferedImage buff = new BufferedImage(Integer.parseInt(width.getText()), Integer.parseInt(length.getText()), BufferedImage.TYPE_3BYTE_BGR);
                 Graphics g = buff.getGraphics();
-                FileDialog dialog2 = new FileDialog((Frame)null, "Select File to Save To");
-                dialog2.setMode(FileDialog.SAVE);
-                dialog2.setVisible(true);
-                String output = dialog2.getDirectory() + dialog2.getFile();
-                //result = fileChooser.showSaveDialog(frame);
-                //if (result == JFileChooser.APPROVE_OPTION)
-                {
-                    File save = new File(output);
-                    try
-                    {
-                        g.drawImage(resized, 0, 0, null);
-                        ImageIO.write(buff, "png", save);
-                        System.exit(0);
-                    }
-                    catch (Exception e)
-                    {
-                        e.printStackTrace();
-                    }
+                File selected = filechooser.showSaveDialog(primaryStage);
+                try {
+                    g.drawImage(resized, 0, 0, null);
+                    ImageIO.write(buff, "png", selected);
+                    System.exit(0);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
             catch (Exception e)
             {
                 System.out.println("Invalid file chosen.");
                 e.printStackTrace();
-            }*/
+            }
         };
 
         primaryStage.setTitle("UpScalr");
