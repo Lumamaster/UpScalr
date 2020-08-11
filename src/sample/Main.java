@@ -21,7 +21,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.Scanner;
 
 public class Main extends Application {
 
@@ -31,12 +30,9 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception{
         Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
         GridPane grid = new GridPane();
-        //grid.setMinSize(500, 500);
         grid.setPadding(new Insets(10, 10, 10, 10));
         grid.setHgap(5);
         grid.setVgap(5);
-
-        FileChooser filechooser = new FileChooser();
 
         Text maintext = new Text("Insert instructions here");
 
@@ -72,6 +68,7 @@ public class Main extends Application {
         nearest.setToggleGroup(interpolation);
 
         Button generatebutton = new Button("Resize");
+        generatebutton.setDisable(true);
         Button openfile = new Button("Open image");
         Button loadpresetbutton = new Button("Load Preset");
         Button savepresetbutton = new Button("Save Preset");
@@ -97,13 +94,18 @@ public class Main extends Application {
 
 
         EventHandler<ActionEvent> selectfile = actionEvent -> {
-            current = filechooser.showOpenDialog(primaryStage);
-        };
-
-        EventHandler<ActionEvent> loadpreset = actionEvent -> {
-            File selected = filechooser.showOpenDialog(primaryStage);
+            FileChooser temp = new FileChooser();
+            temp.setTitle("Select Image");
+            temp.getExtensionFilters().addAll(
+                    new FileChooser.ExtensionFilter("All Images", "*.*"),
+                    new FileChooser.ExtensionFilter("JPG", "*.jpg"),
+                    new FileChooser.ExtensionFilter("PNG", "*.png")
+            );
+            current = temp.showOpenDialog(primaryStage);
+            filepath.setText(current.getAbsolutePath());
+            generatebutton.setDisable(false);
             try {
-                Image selectedimage = ImageIO.read(selected);
+                Image selectedimage = ImageIO.read(current);
                 length.setText(Integer.toString(selectedimage.getHeight(null)));
                 width.setText(Integer.toString(selectedimage.getWidth(null)));
                 lscale.setText("1.0");
@@ -113,23 +115,71 @@ public class Main extends Application {
             }
         };
 
+        EventHandler<ActionEvent> loadpreset = actionEvent -> {
+            FileChooser temp = new FileChooser();
+            temp.setTitle("Select Preset");
+            temp.getExtensionFilters().addAll(
+                    new FileChooser.ExtensionFilter("UpScalr Presets", "*.scalr")
+            );
+            current = temp.showOpenDialog(primaryStage);
+            File selected = temp.showOpenDialog(primaryStage);
+
+        };
+
         EventHandler<ActionEvent> savepreset = actionEvent -> {
-            File selected = filechooser.showOpenDialog(primaryStage);
+            FileChooser temp = new FileChooser();
+            temp.setTitle("Save Preset");
+            temp.getExtensionFilters().addAll(
+                    new FileChooser.ExtensionFilter("UpScalr Presets", "*.scalr")
+            );
+            File selected = temp.showOpenDialog(primaryStage);
         };
 
         EventHandler<ActionEvent> resize = actionEvent -> {
             try {
                 Image selectedimage = ImageIO.read(current);
-                Image resized = selectedimage.getScaledInstance(Integer.parseInt(width.getText()), Integer.parseInt(length.getText()), Image.SCALE_FAST);
-                BufferedImage buff = new BufferedImage(Integer.parseInt(width.getText()), Integer.parseInt(length.getText()), BufferedImage.TYPE_3BYTE_BGR);
-                Graphics g = buff.getGraphics();
-                File selected = filechooser.showSaveDialog(primaryStage);
-                try {
-                    g.drawImage(resized, 0, 0, null);
-                    ImageIO.write(buff, "png", selected);
-                    System.exit(0);
-                } catch (Exception e) {
-                    e.printStackTrace();
+                int type = 1;
+                boolean selected = true;
+                if (bicubic.isSelected())
+                {
+                    type = Image.SCALE_AREA_AVERAGING;
+                }
+                else if (bilinear.isSelected())
+                {
+                    type = Image.SCALE_SMOOTH;
+                }
+                else if (nearest.isSelected())
+                {
+                    type = Image.SCALE_FAST;
+                }
+                else
+                {
+                    selected = false;
+                }
+                if (selected)
+                {
+                    Image resized = selectedimage.getScaledInstance(Integer.parseInt(width.getText()), Integer.parseInt(length.getText()), type);
+                    BufferedImage buff = new BufferedImage(Integer.parseInt(width.getText()), Integer.parseInt(length.getText()), BufferedImage.TYPE_3BYTE_BGR);
+                    Graphics g = buff.getGraphics();
+                    FileChooser temp = new FileChooser();
+                    temp.setTitle("Save Image");
+                    temp.getExtensionFilters().addAll(
+                            new FileChooser.ExtensionFilter("All Images", "*.*"),
+                            new FileChooser.ExtensionFilter("JPG", "*.jpg"),
+                            new FileChooser.ExtensionFilter("PNG", "*.png")
+                    );
+                    File selected = temp.showSaveDialog(primaryStage);
+                    try {
+                        g.drawImage(resized, 0, 0, null);
+                        ImageIO.write(buff, "png", selected);
+                        System.exit(0);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                else
+                {
+                    //TODO: MAKE ERROR POPUP
                 }
             }
             catch (Exception e)
@@ -138,6 +188,11 @@ public class Main extends Application {
                 e.printStackTrace();
             }
         };
+
+        generatebutton.setOnAction(resize);
+        openfile.setOnAction(selectfile);
+        savepresetbutton.setOnAction(savepreset);
+        loadpresetbutton.setOnAction(loadpreset);
 
         primaryStage.setTitle("UpScalr");
         Scene scene = new Scene(grid);
