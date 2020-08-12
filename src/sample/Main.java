@@ -20,14 +20,17 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Scanner;
 
 public class Main extends Application {
 
     File current;
 
     @Override
-    public void start(Stage primaryStage) throws Exception{
+    public void start(Stage primaryStage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
         GridPane grid = new GridPane();
         grid.setPadding(new Insets(10, 10, 10, 10));
@@ -42,6 +45,9 @@ public class Main extends Application {
         TextField length = new TextField();
         TextField width = new TextField();
 
+        length.setEditable(false);
+        width.setEditable(false);
+
         length.setPrefWidth(75);
         width.setPrefWidth(75);
 
@@ -54,6 +60,9 @@ public class Main extends Application {
         TextField lscale = new TextField();
         TextField wscale = new TextField();
 
+        lscale.setEditable(false);
+        wscale.setEditable(false);
+
         lscale.setPrefWidth(75);
         wscale.setPrefWidth(75);
 
@@ -62,6 +71,7 @@ public class Main extends Application {
         RadioButton bicubic = new RadioButton("High Interpolation (Cubic)");
         RadioButton bilinear = new RadioButton("Medium Interpolation (Linear)");
         RadioButton nearest = new RadioButton("No Interpolation (Nearest Neighbor)");
+        bicubic.setSelected(true);
         ToggleGroup interpolation = new ToggleGroup();
         bicubic.setToggleGroup(interpolation);
         bilinear.setToggleGroup(interpolation);
@@ -102,16 +112,23 @@ public class Main extends Application {
                     new FileChooser.ExtensionFilter("PNG", "*.png")
             );
             current = temp.showOpenDialog(primaryStage);
-            filepath.setText(current.getAbsolutePath());
-            generatebutton.setDisable(false);
-            try {
-                Image selectedimage = ImageIO.read(current);
-                length.setText(Integer.toString(selectedimage.getHeight(null)));
-                width.setText(Integer.toString(selectedimage.getWidth(null)));
-                lscale.setText("1.0");
-                wscale.setText("1.0");
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (current.exists()) {
+                filepath.setText(current.getAbsolutePath());
+                generatebutton.setDisable(false);
+                try {
+                    Image selectedimage = ImageIO.read(current);
+                    length.setText(Integer.toString(selectedimage.getHeight(null)));
+                    width.setText(Integer.toString(selectedimage.getWidth(null)));
+                    length.setEditable(true);
+                    width.setEditable(true);
+                    lscale.setText("1.0");
+                    wscale.setText("1.0");
+                    lscale.setEditable(true);
+                    wscale.setEditable(true);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    displayError("An error occurred when attempting to open the selected image.");
+                }
             }
         };
 
@@ -123,7 +140,33 @@ public class Main extends Application {
             );
             current = temp.showOpenDialog(primaryStage);
             File selected = temp.showOpenDialog(primaryStage);
-
+            try {
+                Scanner scan = new Scanner(selected);
+                String l = scan.nextLine();
+                String w = scan.nextLine();
+                String inter = scan.nextLine();
+                lscale.setText(l);
+                wscale.setText(w);
+                switch (inter) {
+                    case "1":
+                        bicubic.setSelected(true);
+                        bilinear.setSelected(false);
+                        nearest.setSelected(false);
+                        break;
+                    case "2":
+                        bicubic.setSelected(false);
+                        bilinear.setSelected(true);
+                        nearest.setSelected(false);
+                        break;
+                    default:
+                        bicubic.setSelected(false);
+                        bilinear.setSelected(false);
+                        nearest.setSelected(true);
+                        break;
+                }
+            } catch (Exception e) {
+                displayError("An error occurred when attempting to open the selected preset.");
+            }
         };
 
         EventHandler<ActionEvent> savepreset = actionEvent -> {
@@ -133,6 +176,21 @@ public class Main extends Application {
                     new FileChooser.ExtensionFilter("UpScalr Presets", "*.scalr")
             );
             File selected = temp.showOpenDialog(primaryStage);
+            try {
+                PrintWriter out = new PrintWriter(selected);
+                out.println(lscale.getText());
+                out.println(wscale.getText());
+                if (bicubic.isSelected()) {
+                    out.println("1");
+                } else if (bilinear.isSelected()) {
+                    out.println("2");
+                } else {
+                    out.println("3");
+                }
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                displayError("The specified file was not found.");
+            }
         };
 
         EventHandler<ActionEvent> resize = actionEvent -> {
@@ -140,24 +198,16 @@ public class Main extends Application {
                 Image selectedimage = ImageIO.read(current);
                 int type = 1;
                 boolean selected = true;
-                if (bicubic.isSelected())
-                {
+                if (bicubic.isSelected()) {
                     type = Image.SCALE_AREA_AVERAGING;
-                }
-                else if (bilinear.isSelected())
-                {
+                } else if (bilinear.isSelected()) {
                     type = Image.SCALE_SMOOTH;
-                }
-                else if (nearest.isSelected())
-                {
+                } else if (nearest.isSelected()) {
                     type = Image.SCALE_FAST;
-                }
-                else
-                {
+                } else {
                     selected = false;
                 }
-                if (selected)
-                {
+                if (selected) {
                     Image resized = selectedimage.getScaledInstance(Integer.parseInt(width.getText()), Integer.parseInt(length.getText()), type);
                     BufferedImage buff = new BufferedImage(Integer.parseInt(width.getText()), Integer.parseInt(length.getText()), BufferedImage.TYPE_3BYTE_BGR);
                     Graphics g = buff.getGraphics();
@@ -168,23 +218,22 @@ public class Main extends Application {
                             new FileChooser.ExtensionFilter("JPG", "*.jpg"),
                             new FileChooser.ExtensionFilter("PNG", "*.png")
                     );
-                    File selected = temp.showSaveDialog(primaryStage);
+                    File saveto = temp.showSaveDialog(primaryStage);
                     try {
                         g.drawImage(resized, 0, 0, null);
-                        ImageIO.write(buff, "png", selected);
-                        System.exit(0);
+                        ImageIO.write(buff, "png", saveto);
+                        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                        alert.setTitle("Confirmation");
+                        alert.setContentText("Resizing complete!");
+                        alert.show();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+                } else {
+                    displayError("Please select a interpolation option before resizing.");
                 }
-                else
-                {
-                    //TODO: MAKE ERROR POPUP
-                }
-            }
-            catch (Exception e)
-            {
-                System.out.println("Invalid file chosen.");
+            } catch (Exception e) {
+                displayError("An invalid image was selected.");
                 e.printStackTrace();
             }
         };
@@ -204,5 +253,12 @@ public class Main extends Application {
     public static void main(String[] args) {
 
         launch(args);
+    }
+
+    public void displayError(String text) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Error");
+        alert.setContentText(text);
+        alert.show();
     }
 }
