@@ -1,11 +1,12 @@
 package sample;
 
 import javafx.application.Application;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
-import javafx.scene.Group;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -15,6 +16,8 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.util.converter.DoubleStringConverter;
+import javafx.util.converter.IntegerStringConverter;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -45,6 +48,9 @@ public class Main extends Application {
         TextField length = new TextField();
         TextField width = new TextField();
 
+        length.setTextFormatter(new TextFormatter<>(new IntegerStringConverter()));
+        width.setTextFormatter(new TextFormatter<>(new IntegerStringConverter()));
+
         length.setEditable(false);
         width.setEditable(false);
 
@@ -59,6 +65,9 @@ public class Main extends Application {
 
         TextField lscale = new TextField();
         TextField wscale = new TextField();
+
+        lscale.setTextFormatter(new TextFormatter<>(new DoubleStringConverter()));
+        wscale.setTextFormatter(new TextFormatter<>(new DoubleStringConverter()));
 
         lscale.setEditable(false);
         wscale.setEditable(false);
@@ -83,6 +92,21 @@ public class Main extends Application {
         Button loadpresetbutton = new Button("Load Preset");
         Button savepresetbutton = new Button("Save Preset");
 
+        length.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable,
+                                String oldValue, String newValue) {
+                int oldnum = Integer.parseInt(oldValue);
+                int newnum = Integer.parseInt(newValue);
+                double change = newnum/oldnum;
+                //TODO: ADD LISTENER TO LENGTH/WIDTH FIELDS AND AUTOADJUST FIELDS AS TEXT EDITED
+                if (aspectratio.isSelected())
+                {
+
+                }
+            }
+        });
+
         grid.add(maintext, 0, 0, 3, 1);
         grid.add(filepath, 1, 1, 3, 1);
         grid.add(openfile, 0, 1);
@@ -101,7 +125,6 @@ public class Main extends Application {
         grid.add(generatebutton, 0, 5);
         grid.add(savepresetbutton, 4, 5);
         grid.add(loadpresetbutton, 5, 5);
-
 
         EventHandler<ActionEvent> selectfile = actionEvent -> {
             FileChooser temp = new FileChooser();
