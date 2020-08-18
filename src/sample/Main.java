@@ -26,6 +26,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.Scanner;
 
 public class Main extends Application {
@@ -39,6 +41,9 @@ public class Main extends Application {
         grid.setPadding(new Insets(10, 10, 10, 10));
         grid.setHgap(5);
         grid.setVgap(5);
+
+        DecimalFormat dec = new DecimalFormat("#.####");
+        dec.setRoundingMode(RoundingMode.DOWN);
 
         Text maintext = new Text("Insert instructions here");
 
@@ -92,19 +97,51 @@ public class Main extends Application {
         Button loadpresetbutton = new Button("Load Preset");
         Button savepresetbutton = new Button("Save Preset");
 
-        length.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(ObservableValue<? extends String> observable,
-                                String oldValue, String newValue) {
-                int oldnum = Integer.parseInt(oldValue);
-                int newnum = Integer.parseInt(newValue);
-                double change = newnum/oldnum;
-                //TODO: ADD LISTENER TO LENGTH/WIDTH FIELDS AND AUTOADJUST FIELDS AS TEXT EDITED
-                if (aspectratio.isSelected())
-                {
-
-                }
+        length.textProperty().addListener((observable, oldValue, newValue) -> {
+            int oldnum = Integer.parseInt(oldValue);
+            int newnum = Integer.parseInt(newValue);
+            double change = newnum/oldnum;
+            if (aspectratio.isSelected())
+            {
+                width.setText(Integer.toString((int)(Integer.parseInt(width.getText()) * change)));
+                wscale.setText(dec.format(Double.parseDouble(wscale.getText()) * change));
             }
+            lscale.setText(dec.format((Double.parseDouble(lscale.getText()) * change)));
+        });
+
+        width.textProperty().addListener((observable, oldValue, newValue) -> {
+            int oldnum = Integer.parseInt(oldValue);
+            int newnum = Integer.parseInt(newValue);
+            double change = newnum/oldnum;
+            if (aspectratio.isSelected()) {
+                length.setText(Integer.toString((int) (Integer.parseInt(length.getText()) * change)));
+                lscale.setText(dec.format(Double.parseDouble(lscale.getText()) * change));
+            }
+            wscale.setText(dec.format((Double.parseDouble(wscale.getText()) * change)));
+        });
+
+        lscale.textProperty().addListener((observable, oldValue, newValue) -> {
+            double oldnum = Double.parseDouble(oldValue);
+            double newnum = Double.parseDouble(newValue);
+            double change = newnum/oldnum;
+            if (aspectratio.isSelected())
+            {
+                width.setText(Integer.toString((int)(Integer.parseInt(width.getText()) * change)));
+                wscale.setText(dec.format(Double.parseDouble(wscale.getText()) * change));
+            }
+            length.setText(Integer.toString((int)(Integer.parseInt(length.getText()) * change)));
+        });
+
+        wscale.textProperty().addListener((observable, oldValue, newValue) -> {
+            double oldnum = Double.parseDouble(oldValue);
+            double newnum = Double.parseDouble(newValue);
+            double change = newnum/oldnum;
+            if (aspectratio.isSelected())
+            {
+                length.setText(Integer.toString((int)(Integer.parseInt(length.getText()) * change)));
+                lscale.setText(dec.format(Double.parseDouble(lscale.getText()) * change));
+            }
+            width.setText(Integer.toString((int)(Integer.parseInt(width.getText()) * change)));
         });
 
         grid.add(maintext, 0, 0, 3, 1);
