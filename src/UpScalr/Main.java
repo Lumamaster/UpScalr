@@ -1,8 +1,6 @@
-package sample;
+package UpScalr;
 
 import javafx.application.Application;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
@@ -29,14 +27,15 @@ import java.io.PrintWriter;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Main extends Application {
 
     File current;
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
+    public void start(Stage primaryStage) {
+        //Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
         GridPane grid = new GridPane();
         grid.setPadding(new Insets(10, 10, 10, 10));
         grid.setHgap(5);
@@ -97,51 +96,66 @@ public class Main extends Application {
         Button loadpresetbutton = new Button("Load Preset");
         Button savepresetbutton = new Button("Save Preset");
 
+        AtomicBoolean editing = new AtomicBoolean(false);
+
         length.textProperty().addListener((observable, oldValue, newValue) -> {
-            int oldnum = Integer.parseInt(oldValue);
-            int newnum = Integer.parseInt(newValue);
-            double change = newnum/oldnum;
-            if (aspectratio.isSelected())
-            {
-                width.setText(Integer.toString((int)(Integer.parseInt(width.getText()) * change)));
-                wscale.setText(dec.format(Double.parseDouble(wscale.getText()) * change));
+            if (!editing.get()) {
+                editing.set(true);
+                int oldnum = Integer.parseInt(oldValue);
+                int newnum = Integer.parseInt(newValue);
+                double change = newnum / oldnum;
+                if (aspectratio.isSelected()) {
+                    width.setText(Integer.toString((int) (Integer.parseInt(width.getText()) * change)));
+                    wscale.setText(dec.format(Double.parseDouble(wscale.getText()) * change));
+                }
+                lscale.setText(dec.format((Double.parseDouble(lscale.getText()) * change)));
+                editing.set(false);
             }
-            lscale.setText(dec.format((Double.parseDouble(lscale.getText()) * change)));
         });
 
         width.textProperty().addListener((observable, oldValue, newValue) -> {
-            int oldnum = Integer.parseInt(oldValue);
-            int newnum = Integer.parseInt(newValue);
-            double change = newnum/oldnum;
-            if (aspectratio.isSelected()) {
-                length.setText(Integer.toString((int) (Integer.parseInt(length.getText()) * change)));
-                lscale.setText(dec.format(Double.parseDouble(lscale.getText()) * change));
+            if (!editing.get()) {
+                editing.set(true);
+                int oldnum = Integer.parseInt(oldValue);
+                int newnum = Integer.parseInt(newValue);
+                double change = newnum / oldnum;
+                if (aspectratio.isSelected()) {
+                    length.setText(Integer.toString((int) (Integer.parseInt(length.getText()) * change)));
+                    lscale.setText(dec.format(Double.parseDouble(lscale.getText()) * change));
+                }
+                wscale.setText(dec.format((Double.parseDouble(wscale.getText()) * change)));
+                editing.set(false);
             }
-            wscale.setText(dec.format((Double.parseDouble(wscale.getText()) * change)));
         });
 
         lscale.textProperty().addListener((observable, oldValue, newValue) -> {
-            double oldnum = Double.parseDouble(oldValue);
-            double newnum = Double.parseDouble(newValue);
-            double change = newnum/oldnum;
-            if (aspectratio.isSelected())
-            {
-                width.setText(Integer.toString((int)(Integer.parseInt(width.getText()) * change)));
-                wscale.setText(dec.format(Double.parseDouble(wscale.getText()) * change));
+            if (!editing.get()) {
+                editing.set(true);
+                double oldnum = Double.parseDouble(oldValue);
+                double newnum = Double.parseDouble(newValue);
+                double change = newnum / oldnum;
+                if (aspectratio.isSelected()) {
+                    width.setText(Integer.toString((int) (Integer.parseInt(width.getText()) * change)));
+                    wscale.setText(dec.format(Double.parseDouble(wscale.getText()) * change));
+                }
+                length.setText(Integer.toString((int) (Integer.parseInt(length.getText()) * change)));
+                editing.set(false);
             }
-            length.setText(Integer.toString((int)(Integer.parseInt(length.getText()) * change)));
         });
 
         wscale.textProperty().addListener((observable, oldValue, newValue) -> {
-            double oldnum = Double.parseDouble(oldValue);
-            double newnum = Double.parseDouble(newValue);
-            double change = newnum/oldnum;
-            if (aspectratio.isSelected())
-            {
-                length.setText(Integer.toString((int)(Integer.parseInt(length.getText()) * change)));
-                lscale.setText(dec.format(Double.parseDouble(lscale.getText()) * change));
+            if (!editing.get()) {
+                editing.set(true);
+                double oldnum = Double.parseDouble(oldValue);
+                double newnum = Double.parseDouble(newValue);
+                double change = newnum / oldnum;
+                if (aspectratio.isSelected()) {
+                    length.setText(Integer.toString((int) (Integer.parseInt(length.getText()) * change)));
+                    lscale.setText(dec.format(Double.parseDouble(lscale.getText()) * change));
+                }
+                width.setText(Integer.toString((int) (Integer.parseInt(width.getText()) * change)));
+                editing.set(false);
             }
-            width.setText(Integer.toString((int)(Integer.parseInt(width.getText()) * change)));
         });
 
         grid.add(maintext, 0, 0, 3, 1);

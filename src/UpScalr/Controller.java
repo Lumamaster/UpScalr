@@ -1,4 +1,4 @@
-package sample;
+package UpScalr;
 
 public class Controller {
 }
